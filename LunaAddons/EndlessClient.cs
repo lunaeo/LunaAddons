@@ -9,6 +9,55 @@ namespace LunaAddons
 {
     using EndlessOnline.Communication;
     using Detours;
+    using NetCoreServer;
+    using System.Net;
+
+    /// <summary>
+    /// Used to add a message handler to the OnMessage event of an instance of AddonConnection.
+    /// </summary>
+    public delegate void MessageReceivedEventHandler(object sender, AddonMessage e);
+
+    public class AddonConnection : TcpClient
+    {
+        internal EndlessClient Client { get; }
+        internal BinarySerializer Serializer { get; set; }
+        internal BinaryDeserializer Deserializer { get; set; }
+        public string SessionId { get; }
+
+        /// <summary>
+        /// A property used to add a message handler to the OnMessage event of an instance of Connection.
+        /// </summary>
+        public event MessageReceivedEventHandler OnMessage;
+
+        public AddonConnection(string address, int port, string sessionId, EndlessClient client) : base(address, port)
+        {
+            this.Client = client;
+            this.Serializer = new BinarySerializer();
+            this.Deserializer = new BinaryDeserializer();
+            this.SessionId = sessionId;
+
+            this.Deserializer.OnDeserializedMessage += (e) =>
+            {
+                this.OnMessage?.Invoke(this, e);
+            };
+        }
+
+        protected override void OnConnected()
+        {
+            this.Send("init", this.Client.AddonProtocolVersion, this.SessionId);
+        }
+
+        public void Send(string type, params object[] parameters) =>
+            this.Send(new AddonMessage(type, parameters));
+
+        public void Send(AddonMessage message) => 
+            this.Send(this.Serializer.Serialize(message));
+
+        protected override void OnReceived(byte[] buffer, long offset, long size)
+        {
+            this.Deserializer.AddBytes(buffer.Skip((int)offset).Take((int)size).ToArray());
+        }
+    }
 
     public class EndlessClient
     {
@@ -21,6 +70,7 @@ namespace LunaAddons
         internal PacketProcessor PacketProcessor { get; set; }
         internal AddonConnection AddonConnection { get; set; }
         internal int SocketId { get; private set; }
+        internal int AddonProtocolVersion => 1;
 
         public EndlessClient(MemorySharp memory)
         {
@@ -29,7 +79,6 @@ namespace LunaAddons
             this.Map = new Map(this);
 
             this.PacketProcessor = new ClientPacketProcessor();
-            this.AddonConnection = new AddonConnection(this);
 
             this.AddonConnection.OnMessage += (s, e) =>
             {
@@ -82,7 +131,13 @@ namespace LunaAddons
                         this.State = ClientState.Initialized;
                         decode.Skip(3);
 
-                        this.PacketProcessor.SetMulti(decode.GetByte(), decode.GetByte());
+                        var recv_multi = decode.GetByte();
+                        var send_multi = decode.GetByte();
+
+                        Console.WriteLine("recv_multi: " + recv_multi);
+                        Console.WriteLine("send_multi: " + send_multi);
+
+                        this.PacketProcessor.SetMulti(recv_multi, send_multi);
                         this.SocketId = packet.Socket;
                     }
 
@@ -96,13 +151,12 @@ namespace LunaAddons
                 Console.WriteLine("({0}) {1} {2} | (length: {3})", packet.Channel == PacketChannel.Send ? "client-server" : "server->client",
                     decoded.Family, decoded.Action, decoded.Length);
 
-                if (decoded.Family == PacketFamily.Welcome && decoded.Action == PacketAction.Message)
-                    this.AddonConnection.Send(new AddonMessage("init", Program.Version));
-
-                if (decoded.Family == PacketFamily.AutoRefresh && decoded.Action == PacketAction.Init)
+                if (decoded.Family == PacketFamily.Init && decoded.Action == PacketAction.Open)
                 {
-                    var decoded_buffer = decoded.Get().Skip(2).ToArray();
-                    this.AddonConnection.MessageDeserializer.AddBytes(decoded_buffer);
+                    var port = decoded.GetInt();
+                    var sessionId = decoded.GetEndString();
+
+                    this.AddonConnection = new AddonConnection(packet.Source.Address.ToString(), port, sessionId, this);
                 }
 
                 return new InterceptResponse(false);
