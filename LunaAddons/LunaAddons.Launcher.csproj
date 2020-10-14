@@ -104,6 +104,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddonConnection.cs" />
+    <Compile Include="Character.cs" />
     <Compile Include="ClientState.cs" />
     <Compile Include="Communication\AddonMessage.cs" />
     <Compile Include="Communication\BinarySerializer.cs" />

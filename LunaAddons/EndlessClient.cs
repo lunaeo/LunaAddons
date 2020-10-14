@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Threading;
 using Binarysharp.MemoryManagement;
+using Binarysharp.MemoryManagement.Native;
 
 namespace LunaAddons
 {
@@ -7,6 +9,7 @@ namespace LunaAddons
     {
         internal MemorySharp Memory { get; set; }
         internal ClientState State { get; set; }
+        internal Character Character { get; }
         internal Map Map { get; set; }
         internal AddonConnection AddonConnection { get; set; }
 
@@ -14,6 +17,7 @@ namespace LunaAddons
         {
             this.Memory = memory;
             this.State = ClientState.Uninitialized;
+            this.Character = new Character(this);
             this.Map = new Map(this);
         }
 
@@ -26,7 +30,16 @@ namespace LunaAddons
 
                 switch (e.Type)
                 {
+                    case "sit":
+                        this.Character.Sit();
+                        break;
+
+                    case "stand":
+                        this.Character.Stand();
+                        break;
+
                     case "mutate":
+                    {
                         var type = e.GetInt(0);
                         var x = e.GetInt(1);
                         var y = e.GetInt(2);
@@ -48,6 +61,7 @@ namespace LunaAddons
                             }
                         }
                         break;
+                    }
                 }
             };
         }
