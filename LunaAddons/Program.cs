@@ -1,31 +1,51 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Binarysharp.MemoryManagement;
+using Serilog;
 
 namespace LunaAddons
 {
     public class Program
     {
-        private static EndlessClient EndlessClient { get; set; }
-        private static MemorySharp EndlessMemory { get; set; }
+        internal static EndlessClient EndlessClient { get; set; }
+        internal static MemorySharp EndlessMemory { get; set; }
+        internal static EndlessProxyServer EndlessProxyServer { get; set; }
+        internal static ILogger Console { get; private set; }
 
-        // The version of the launcher to report to the server in the "init" message.
-        public static int Version => 1;
+        /// <summary>
+        /// The version of the launcher to report to the server in the "init" message.
+        /// </summary>
+        public static int AddonVersion => 1;
 
         private static int EntryPoint(string args)
         {
             NativeMethods.AllocConsole();
+            
+            Console = new LoggerConfiguration()
+                .WriteTo.Console()
+                .CreateLogger();
 
-            Console.WriteLine("Runtime Initialized.");
-            Console.WriteLine("Arguments: " + args);
+            Console.Information("LunaAddons. Version: {0}", AddonVersion);
 
-            EndlessMemory = new MemorySharp(Process.GetCurrentProcess());
-            EndlessClient = new EndlessClient(EndlessMemory);
+            try
+            {
+                EndlessProxyServer = new EndlessProxyServer(IPAddress.Any, 8080);
+                EndlessProxyServer.Start();
 
-            while (true)
-                Console.ReadLine();
+                EndlessMemory = new MemorySharp(Process.GetCurrentProcess());
+                EndlessClient = new EndlessClient(EndlessMemory);
+            }
+            catch (Exception exception)
+            {
+                Console.Error(exception.ToString());
+            }
+
+            Thread.Sleep(-1);
+            return 0;
         }
 
         private static void Main(string[] args)
