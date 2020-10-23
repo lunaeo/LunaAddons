@@ -54,6 +54,8 @@ namespace LunaAddons
                 {
                     if (this.Stream != null)
                         Program.Console.Error("ProxyClient connection forcibly reset by peer.");
+
+                    this.Client.AddonConnection.Socket?.Disconnect(true);
                     return;
                 }
 
@@ -62,7 +64,8 @@ namespace LunaAddons
 
                 if (length == 0)
                 {
-                    Program.Console.Error("ProxyClient connection forcibly reset by peer. (receiveBytes == 0)");
+                    Program.Console.Error("ProxyClient connection forcibly reset by peer. (receivedBytes == 0)");
+                    this.Client.AddonConnection.Socket?.Disconnect(true);
                     return;
                 }
 
@@ -71,11 +74,19 @@ namespace LunaAddons
             }
             catch (IOException ex)
             {
-                this.Client.AddonConnection.Socket?.Disconnect(true);
+                if (this.Socket != null && this.Socket.Connected)
+                    this.Socket.Close();
+
+                if (this.Client.AddonConnection.Socket != null && this.Client.AddonConnection.Socket.Connected)
+                    this.Client.AddonConnection.Socket.Disconnect(true);
             }
             catch (SocketException ex)
             {
-                this.Client.AddonConnection.Socket?.Disconnect(true);
+                if (this.Socket != null && this.Socket.Connected)
+                    this.Socket.Close();
+
+                if (this.Client.AddonConnection.Socket != null && this.Client.AddonConnection.Socket.Connected)
+                    this.Client.AddonConnection.Socket.Disconnect(true);
             }
         }
 

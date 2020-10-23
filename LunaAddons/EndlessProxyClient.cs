@@ -16,6 +16,7 @@ namespace LunaAddons
         public NetworkStream Stream { get; }
         public ClientPacketProcessor PacketProcessor { get; }
         public byte[] Buffer { get; set; } = new byte[ushort.MaxValue];
+        public ClientState State { get; set; } = ClientState.Uninitialized;
 
         public EndlessProxyClient(EndlessProxySession session, string address, int port)
         {
@@ -65,13 +66,13 @@ namespace LunaAddons
                     return;
                 }
 
-                if (Program.EndlessClient.State != ClientState.Initialized)
+                if (this.State != ClientState.Initialized)
                 {
                     var packet = new Packet(received.Skip(2).ToArray());
 
                     if (packet.Family == PacketFamily.Init && packet.Action == PacketAction.Init)
                     {
-                        Program.EndlessClient.State = ClientState.Initialized;
+                        this.State = ClientState.Initialized;
 
                         packet.Skip(3);
                         var recv_multi = packet.GetByte();
@@ -112,9 +113,19 @@ namespace LunaAddons
             }
             catch (IOException)
             {
+                if (this.Session != null && this.Session.IsConnected)
+                    this.Session.Disconnect();
+
+                if (this.Socket != null && this.Socket.Connected)
+                    this.Socket.Disconnect(true);
             }
             catch (SocketException)
             {
+                if (this.Session != null && this.Session.IsConnected)
+                    this.Session.Disconnect();
+
+                if (this.Socket != null && this.Socket.Connected)
+                    this.Socket.Disconnect(true);
             }
         }
     }

@@ -8,7 +8,6 @@ namespace LunaAddons
     public class EndlessClient
     {
         internal MemorySharp Memory { get; set; }
-        internal ClientState State { get; set; }
         internal Character Character { get; }
         internal Map Map { get; set; }
         internal AddonConnection AddonConnection { get; set; }
@@ -16,7 +15,6 @@ namespace LunaAddons
         public EndlessClient(MemorySharp memory)
         {
             this.Memory = memory;
-            this.State = ClientState.Uninitialized;
             this.Character = new Character(this);
             this.Map = new Map(this);
         }
