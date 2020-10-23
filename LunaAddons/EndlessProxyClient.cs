@@ -4,6 +4,7 @@ using System.Net.Sockets;
 
 namespace LunaAddons
 {
+    using System.IO;
     using EndlessOnline.Communication;
 
     public class EndlessProxyClient
@@ -109,10 +110,11 @@ namespace LunaAddons
                 skip_packet:
                 this.Stream?.BeginRead(this.Buffer, 0, this.Buffer.Length, new AsyncCallback(this.ReceiveCallback), null);
             }
-            catch (SocketException ex)
+            catch (IOException)
             {
-                Program.Console.Error("ProxyClient SocketException occured: {0}", ex.ToString());
-                return;
+            }
+            catch (SocketException)
+            {
             }
         }
     }

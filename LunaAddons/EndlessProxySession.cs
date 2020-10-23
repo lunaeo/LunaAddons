@@ -24,8 +24,13 @@ namespace LunaAddons
             catch (Exception exception)
             {
                 Program.Console.Error("An exception occured in ProxySession: {message}", exception.Message);
-                this.Disconnect();
+                this.Server.DisconnectAll();
             }
+        }
+
+        protected override void OnDisconnected()
+        {
+            this.EndlessProxyClient?.Socket?.Disconnect(true);
         }
 
         protected override void OnConnected()

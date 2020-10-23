@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 
@@ -66,13 +67,15 @@ namespace LunaAddons
                 }
 
                 this.Deserializer.AddBytes(received);
-
                 this.Stream?.BeginRead(this.Buffer, 0, this.Buffer.Length, new AsyncCallback(this.ReceiveCallback), null);
+            }
+            catch (IOException ex)
+            {
+                this.Client.AddonConnection.Socket?.Disconnect(true);
             }
             catch (SocketException ex)
             {
-                Program.Console.Error("ProxyClient SocketException occured: " + ex);
-                return;
+                this.Client.AddonConnection.Socket?.Disconnect(true);
             }
         }
 
