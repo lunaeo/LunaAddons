@@ -11,8 +11,6 @@ namespace LunaAddons
 {
     public class Program
     {
-        internal static EndlessClient EndlessClient { get; set; }
-        internal static MemorySharp EndlessMemory { get; set; }
         internal static EndlessProxyServer EndlessProxyServer { get; set; }
         internal static ILogger Console { get; private set; }
 
@@ -35,9 +33,6 @@ namespace LunaAddons
             {
                 EndlessProxyServer = new EndlessProxyServer(IPAddress.Any, 8080);
                 EndlessProxyServer.Start();
-
-                EndlessMemory = new MemorySharp(Process.GetCurrentProcess());
-                EndlessClient = new EndlessClient(EndlessMemory);
             }
             catch (Exception exception)
             {

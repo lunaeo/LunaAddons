@@ -9,6 +9,29 @@
             this.Client = client;
         }
 
+        /// <summary>
+        /// If outside the map, the value will be >254
+        /// </summary>
+        internal ushort GetHoverTileX()
+        {
+            var base_address_offset = 0x00275688;
+            var offsets = new[] { 0x04, 0x36C, 0x14FC20 };
+
+            return this.Client.Memory.GetPointerValue<ushort>(this.Client.Memory.Modules.MainModule.BaseAddress + base_address_offset, offsets);
+        }
+
+        /// <summary>
+        /// If outside the map, the value will be >254
+        /// </summary>
+        /// <returns></returns>
+        internal ushort GetHoverTileY()
+        {
+            var base_address_offset = 0x00275688;
+            var offsets = new[] { 0x04, 0x36C, 0x14FC20 + 2 };
+
+            return this.Client.Memory.GetPointerValue<ushort>(this.Client.Memory.Modules.MainModule.BaseAddress + base_address_offset, offsets);
+        }
+
         internal ushort GetOverlayA(byte x, byte y)
         {
             var base_address_offset = 0x00305400;

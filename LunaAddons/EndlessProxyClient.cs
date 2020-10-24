@@ -4,7 +4,9 @@ using System.Net.Sockets;
 
 namespace LunaAddons
 {
+    using System.Diagnostics;
     using System.IO;
+    using Binarysharp.MemoryManagement;
     using EndlessOnline.Communication;
 
     public class EndlessProxyClient
@@ -99,8 +101,11 @@ namespace LunaAddons
                         var port = int.Parse(message.Split(' ')[0]);
                         var sessionId = message.Split(' ')[1];
 
-                        Program.EndlessClient.SetupAddonConnection(this.EOAddress, port, sessionId);
+                        var memory = new MemorySharp(Process.GetCurrentProcess());
+                        var client = new EndlessClient(memory);
 
+                        client.SetupAddonConnection(this.EOAddress, port, sessionId);
+                        
                         goto skip_packet;
                     }
                 }

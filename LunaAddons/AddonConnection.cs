@@ -72,7 +72,7 @@ namespace LunaAddons
                 this.Deserializer.AddBytes(received);
                 this.Stream?.BeginRead(this.Buffer, 0, this.Buffer.Length, new AsyncCallback(this.ReceiveCallback), null);
             }
-            catch (IOException ex)
+            catch (IOException)
             {
                 if (this.Socket != null && this.Socket.Connected)
                     this.Socket.Close();
@@ -80,7 +80,7 @@ namespace LunaAddons
                 if (this.Client.AddonConnection.Socket != null && this.Client.AddonConnection.Socket.Connected)
                     this.Client.AddonConnection.Socket.Disconnect(true);
             }
-            catch (SocketException ex)
+            catch (SocketException)
             {
                 if (this.Socket != null && this.Socket.Connected)
                     this.Socket.Close();

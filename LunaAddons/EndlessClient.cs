@@ -28,6 +28,13 @@ namespace LunaAddons
 
                 switch (e.Type)
                 {
+                    case "cursor":
+                        var tile_x = (int)this.Map.GetHoverTileX();
+                        var tile_y = (int)this.Map.GetHoverTileY();
+
+                        this.AddonConnection.Send("cursor", tile_x, tile_y);
+                        break;
+
                     case "sit":
                         this.Character.Sit();
                         break;
