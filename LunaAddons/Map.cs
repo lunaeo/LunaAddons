@@ -27,7 +27,7 @@
         internal ushort GetHoverTileY()
         {
             var base_address_offset = 0x00275688;
-            var offsets = new[] { 0x04, 0x36C, 0x14FC20 + 2 };
+            var offsets = new[] { 0x04, 0x36C, 0x14FC24 };
 
             return this.Client.Memory.GetPointerValue<ushort>(this.Client.Memory.Modules.MainModule.BaseAddress + base_address_offset, offsets);
         }

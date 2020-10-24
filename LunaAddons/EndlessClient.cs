@@ -7,10 +7,10 @@ namespace LunaAddons
 {
     public class EndlessClient
     {
-        internal MemorySharp Memory { get; set; }
+        internal MemorySharp Memory { get; }
         internal Character Character { get; }
-        internal Map Map { get; set; }
-        internal AddonConnection AddonConnection { get; set; }
+        internal Map Map { get; }
+        internal AddonConnection AddonConnection { get; private set; }
 
         public EndlessClient(MemorySharp memory)
         {
